@@ -49,6 +49,18 @@ export function LiveMatch() {
           <Grid.Col span={6}>
             <Paper p="md" withBorder>
               <Stack gap="md">
+                <Title order={3}>Knock Ons</Title>
+                <Group>
+                  <Button onClick={() => updateStats('knockOn', 'home')}>Produced ({currentMatch.stats.knockOns.home})</Button>
+                  <Button onClick={() => updateStats('knockOn', 'away')}>Forced ({currentMatch.stats.knockOns.away})</Button>
+                </Group>
+              </Stack>
+            </Paper>
+          </Grid.Col>
+
+          <Grid.Col span={6}>
+            <Paper p="md" withBorder>
+              <Stack gap="md">
                 <Title order={3}>Turnovers</Title>
                 <Group>
                   <Button onClick={() => updateStats('turnover', 'won')}>Won ({currentMatch.stats.turnovers.won})</Button>
@@ -69,6 +81,37 @@ export function LiveMatch() {
               </Stack>
             </Paper>
           </Grid.Col>
+
+          <Grid.Col span={12}>
+            <Paper p="md" withBorder>
+              <Stack gap="md">
+                <Title order={3}>Cards</Title>
+                <Grid>
+                  <Grid.Col span={6}>
+                    <Stack gap="md">
+                      <Button color="yellow" onClick={() => updateStats('card', 'home-yellow')}>
+                        Add Yellow Card({currentMatch.stats.cards.home.yellow})
+                      </Button>
+                      <Button color="red" onClick={() => updateStats('card', 'home-red')}>
+                        Add Red Card({currentMatch.stats.cards.home.red})
+                      </Button>
+                    </Stack>
+                  </Grid.Col>
+                  <Grid.Col span={6}>
+                    <Stack gap="md">
+                      <Button color="yellow" onClick={() => updateStats('card', 'away-yellow')}>
+                        Add Yellow Card({currentMatch.stats.cards.away.yellow})
+                      </Button>
+                      <Button color="red" onClick={() => updateStats('card', 'away-red')}>
+                        Add Red Card({currentMatch.stats.cards.away.red})
+                      </Button>
+                    </Stack>
+                  </Grid.Col>
+                </Grid>
+              </Stack>
+            </Paper>
+          </Grid.Col>
+
         </Grid>
       </Stack>
     </Container>

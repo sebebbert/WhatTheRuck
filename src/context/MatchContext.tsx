@@ -24,7 +24,12 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
         scrums: { won: 0, lost: 0 },
         lineouts: { won: 0, lost: 0 },
         turnovers: { won: 0, conceded: 0 },
-        penalties: { for: 0, against: 0 }
+        penalties: { for: 0, against: 0 },
+        cards: {
+          home: { yellow: 0, red: 0 },
+          away: { yellow: 0, red: 0 }
+        },
+        knockOns: { home: 0, away: 0 }
       }
     };
     setCurrentMatch(newMatch);
@@ -53,6 +58,18 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
         case 'penalty':
           if (action === 'for') newMatch.stats.penalties.for += 1;
           if (action === 'against') newMatch.stats.penalties.against += 1;
+          break;
+        case 'card':
+          const [cardTeam, cardType] = action.split('-') as ['home' | 'away', 'yellow' | 'red'];
+          if (cardTeam && cardType) {
+            newMatch.stats.cards[cardTeam][cardType] += 1;
+          }
+          break;
+        case 'knockOn':
+          const knockOnTeam = action as 'home' | 'away';
+          if (knockOnTeam) {
+            newMatch.stats.knockOns[knockOnTeam] += 1;
+          }
           break;
       }
 

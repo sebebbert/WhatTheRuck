@@ -13,6 +13,8 @@ export interface MatchStats {
   lineouts: SetPieceStats;
   turnovers: TurnoverStats;
   penalties: PenaltyStats;
+  cards: CardStats;
+  knockOns: KnockOnStats;
 }
 
 export interface SetPieceStats {
@@ -28,4 +30,19 @@ export interface TurnoverStats {
 export interface PenaltyStats {
   for: number;
   against: number;
+}
+
+export interface TeamCardStats {
+  yellow: number;
+  red: number;
+}
+
+export interface CardStats {
+  home: TeamCardStats;
+  away: TeamCardStats;
+}
+
+export interface KnockOnStats {
+  home: number;
+  away: number;
 }
