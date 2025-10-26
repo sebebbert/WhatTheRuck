@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/WhatTheRuck/',
+  base: './',
   plugins: [
     react(),
     VitePWA({
@@ -29,11 +29,5 @@ export default defineConfig({
         start_url: './index.html'
       }
     })
-  ],
-  server: {
-    port: 3000
-  },
-  preview: {
-    port: 3000
-  }
+  ]
 })
