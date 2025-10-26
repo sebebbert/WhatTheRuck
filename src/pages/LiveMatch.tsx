@@ -22,7 +22,7 @@ export function LiveMatch() {
         </Paper>
 
         <Grid>
-          <Grid.Col span={6}>
+          <Grid.Col span={12}>
             <Paper p="md" withBorder>
               <Stack gap="md">
                 <Title order={3}>Scrums</Title>
@@ -34,7 +34,7 @@ export function LiveMatch() {
             </Paper>
           </Grid.Col>
 
-          <Grid.Col span={6}>
+          <Grid.Col span={12}>
             <Paper p="md" withBorder>
               <Stack gap="md">
                 <Title order={3}>Lineouts</Title>
@@ -46,7 +46,7 @@ export function LiveMatch() {
             </Paper>
           </Grid.Col>
 
-          <Grid.Col span={6}>
+          <Grid.Col span={12}>
             <Paper p="md" withBorder>
               <Stack gap="md">
                 <Title order={3}>Knock Ons</Title>
@@ -58,7 +58,7 @@ export function LiveMatch() {
             </Paper>
           </Grid.Col>
 
-          <Grid.Col span={6}>
+          <Grid.Col span={12}>
             <Paper p="md" withBorder>
               <Stack gap="md">
                 <Title order={3}>Turnovers</Title>
@@ -70,7 +70,7 @@ export function LiveMatch() {
             </Paper>
           </Grid.Col>
 
-          <Grid.Col span={6}>
+          <Grid.Col span={12}>
             <Paper p="md" withBorder>
               <Stack gap="md">
                 <Title order={3}>Penalties</Title>
@@ -87,25 +87,25 @@ export function LiveMatch() {
               <Stack gap="md">
                 <Title order={3}>Cards</Title>
                 <Grid>
-                  <Grid.Col span={6}>
-                    <Stack gap="md">
-                      <Button color="yellow" onClick={() => updateStats('card', 'home-yellow')}>
-                        {currentMatch.stats.cards.home.yellow}
-                      </Button>
-                      <Button color="red" onClick={() => updateStats('card', 'home-red')}>
-                        {currentMatch.stats.cards.home.red}
-                      </Button>
-                    </Stack>
-                  </Grid.Col>
-                  <Grid.Col span={6}>
-                    <Stack gap="md">
-                      <Button color="yellow" onClick={() => updateStats('card', 'away-yellow')}>
-                        {currentMatch.stats.cards.away.yellow}
-                      </Button>
-                      <Button color="red" onClick={() => updateStats('card', 'away-red')}>
-                        {currentMatch.stats.cards.away.red}
-                      </Button>
-                    </Stack>
+                  <Grid.Col span={12}>
+                    <Group grow>
+                      <Stack gap="md">
+                        <Button color="yellow" onClick={() => updateStats('card', 'home-yellow')}>
+                          {currentMatch.stats.cards.home.yellow}
+                        </Button>
+                        <Button color="red" onClick={() => updateStats('card', 'home-red')}>
+                          {currentMatch.stats.cards.home.red}
+                        </Button>
+                      </Stack>
+                      <Stack gap="md">
+                        <Button color="yellow" onClick={() => updateStats('card', 'away-yellow')}>
+                          {currentMatch.stats.cards.away.yellow}
+                        </Button>
+                        <Button color="red" onClick={() => updateStats('card', 'away-red')}>
+                          {currentMatch.stats.cards.away.red}
+                        </Button>
+                      </Stack>
+                    </Group>
                   </Grid.Col>
                 </Grid>
               </Stack>
