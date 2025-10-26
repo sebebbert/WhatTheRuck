@@ -51,7 +51,7 @@ export function LiveMatch() {
               <Stack gap="md">
                 <Title order={3}>Turnovers</Title>
                 <Group>
-                  <Button onClick={() => updateStats('turnover', 'forced')}>Forced ({currentMatch.stats.turnovers.forced})</Button>
+                  <Button onClick={() => updateStats('turnover', 'won')}>Won ({currentMatch.stats.turnovers.won})</Button>
                   <Button onClick={() => updateStats('turnover', 'conceded')}>Conceded ({currentMatch.stats.turnovers.conceded})</Button>
                 </Group>
               </Stack>

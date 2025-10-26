@@ -23,7 +23,7 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
       stats: {
         scrums: { won: 0, lost: 0 },
         lineouts: { won: 0, lost: 0 },
-        turnovers: { forced: 0, conceded: 0 },
+        turnovers: { won: 0, conceded: 0 },
         penalties: { for: 0, against: 0 }
       }
     };
@@ -47,7 +47,7 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
           if (action === 'lost') newMatch.stats.lineouts.lost += 1;
           break;
         case 'turnover':
-          if (action === 'forced') newMatch.stats.turnovers.forced += 1;
+          if (action === 'won') newMatch.stats.turnovers.won += 1;
           if (action === 'conceded') newMatch.stats.turnovers.conceded += 1;
           break;
         case 'penalty':

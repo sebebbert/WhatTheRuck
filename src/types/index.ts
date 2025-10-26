@@ -21,7 +21,7 @@ export interface SetPieceStats {
 }
 
 export interface TurnoverStats {
-  forced: number;
+  won: number;
   conceded: number;
 }
 
