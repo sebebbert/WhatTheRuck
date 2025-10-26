@@ -12,7 +12,7 @@ export function NewMatch() {
   const handleStartMatch = () => {
     if (homeTeam && awayTeam) {
       startNewMatch(homeTeam, awayTeam);
-      navigate('/match');
+      navigate('/WhatTheRuck/match');
     }
   };
 

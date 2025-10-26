@@ -10,8 +10,8 @@ function App() {
       <MatchProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<NewMatch />} />
-            <Route path="/match" element={<LiveMatch />} />
+            <Route path="/WhatTheRuck" element={<NewMatch />} />
+            <Route path="/WhatTheRuck/match" element={<LiveMatch />} />
           </Routes>
         </BrowserRouter>
       </MatchProvider>
