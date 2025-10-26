@@ -90,20 +90,20 @@ export function LiveMatch() {
                   <Grid.Col span={6}>
                     <Stack gap="md">
                       <Button color="yellow" onClick={() => updateStats('card', 'home-yellow')}>
-                        Add Yellow Card({currentMatch.stats.cards.home.yellow})
+                        {currentMatch.stats.cards.home.yellow}
                       </Button>
                       <Button color="red" onClick={() => updateStats('card', 'home-red')}>
-                        Add Red Card({currentMatch.stats.cards.home.red})
+                        {currentMatch.stats.cards.home.red}
                       </Button>
                     </Stack>
                   </Grid.Col>
                   <Grid.Col span={6}>
                     <Stack gap="md">
                       <Button color="yellow" onClick={() => updateStats('card', 'away-yellow')}>
-                        Add Yellow Card({currentMatch.stats.cards.away.yellow})
+                        {currentMatch.stats.cards.away.yellow}
                       </Button>
                       <Button color="red" onClick={() => updateStats('card', 'away-red')}>
-                        Add Red Card({currentMatch.stats.cards.away.red})
+                        {currentMatch.stats.cards.away.red}
                       </Button>
                     </Stack>
                   </Grid.Col>
