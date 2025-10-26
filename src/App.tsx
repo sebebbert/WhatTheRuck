@@ -8,7 +8,7 @@ function App() {
   return (
     <MantineProvider>
       <MatchProvider>
-        <BrowserRouter>
+        <BrowserRouter basename="/WhatTheRuck">
           <Routes>
             <Route path="/" element={<NewMatch />} />
             <Route path="/match" element={<LiveMatch />} />

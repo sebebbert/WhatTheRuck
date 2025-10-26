@@ -4,9 +4,9 @@ A simple web app to live track rugby statistics from the sideline
 ## HowTo
 
 1. Local Testing
-  * Run npm run dev for development
-  * Run npm run build to create a production build
-  * Run serve -s dist to test the production build locally
+  * Run `npm run dev` for development
+  * Run `npm run build` to create a production build
+  * Run `serve -s dist` to test the production build locally
 2. Deployment Options
   * Netlify (Recommended):
   ```
