@@ -1,3 +1,10 @@
+export interface MatchEvent {
+  type: string;
+  action: string;
+  time: number;
+  timestamp: string;
+}
+
 export interface Match {
   id: string;
   date: string;
@@ -6,6 +13,7 @@ export interface Match {
   homeScore: number;
   awayScore: number;
   stats: MatchStats;
+  events: MatchEvent[];
 }
 
 export interface MatchStats {

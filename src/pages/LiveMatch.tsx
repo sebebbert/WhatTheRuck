@@ -1,8 +1,10 @@
 import { useMatch } from '../context/MatchContext';
 import { Button, Group, Stack, Title, Container, Grid, Paper, Text } from '@mantine/core';
+import { MatchTimer } from '../components/MatchTimer';
+import { MatchTimeline } from '../components/MatchTimeline';
 
 export function LiveMatch() {
-  const { currentMatch, updateStats } = useMatch();
+  const { currentMatch, updateStats, setMatchTime } = useMatch();
 
   if (!currentMatch) {
     return <div>No active match</div>;
@@ -14,11 +16,14 @@ export function LiveMatch() {
         <Title order={2}>Live Match</Title>
         
         <Paper p="md" withBorder>
-          <Group justify="space-between">
-            <Text size="xl">{currentMatch.homeTeam}</Text>
-            <Text size="xl" fw={700}>{currentMatch.homeScore} - {currentMatch.awayScore}</Text>
-            <Text size="xl">{currentMatch.awayTeam}</Text>
-          </Group>
+          <Stack gap="md">
+            <MatchTimer onTimeUpdate={setMatchTime} />
+            <Group justify="space-between">
+              <Text size="xl">{currentMatch.homeTeam}</Text>
+              <Text size="xl" fw={700}>{currentMatch.homeScore} - {currentMatch.awayScore}</Text>
+              <Text size="xl">{currentMatch.awayTeam}</Text>
+            </Group>
+          </Stack>
         </Paper>
 
         <Grid>
@@ -117,6 +122,13 @@ export function LiveMatch() {
           </Grid.Col>
 
         </Grid>
+
+        <Paper p="md" withBorder>
+          <Stack gap="md">
+            <Title order={3}>Match Timeline</Title>
+            <MatchTimeline events={currentMatch.events} />
+          </Stack>
+        </Paper>
       </Stack>
     </Container>
   );

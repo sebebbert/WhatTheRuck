@@ -1,16 +1,19 @@
 import { createContext, useContext, useState } from 'react';
-import type { Match } from '../types';
+import type { Match, MatchEvent } from '../types';
 
 interface MatchContextType {
   currentMatch: Match | null;
   startNewMatch: (homeTeam: string, awayTeam: string) => void;
-  updateStats: (statType: string, action: string) => void;
+  updateStats: (statType: string, action: string, matchTime?: number) => void;
+  matchTime: number;
+  setMatchTime: (time: number) => void;
 }
 
 const MatchContext = createContext<MatchContextType | null>(null);
 
 export function MatchProvider({ children }: { children: React.ReactNode }) {
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
+  const [matchTime, setMatchTime] = useState(0);
 
   const startNewMatch = (homeTeam: string, awayTeam: string) => {
     const newMatch: Match = {
@@ -30,17 +33,28 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
           away: { yellow: 0, red: 0 }
         },
         knockOns: { home: 0, away: 0 }
-      }
+      },
+      events: []
     };
     setCurrentMatch(newMatch);
+    setMatchTime(0);
   };
 
-  const updateStats = (statType: string, action: string) => {
+  const updateStats = (statType: string, action: string, time?: number) => {
     if (!currentMatch) return;
 
     setCurrentMatch(prev => {
       if (!prev) return null;
       const newMatch = { ...prev };
+      
+      // Add event to timeline
+      const event: MatchEvent = {
+        type: statType,
+        action,
+        time: time ?? matchTime,
+        timestamp: new Date().toISOString()
+      };
+      newMatch.events = [...newMatch.events, event];
 
       switch (statType) {
         case 'scrum':
@@ -82,7 +96,9 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
       value={{ 
         currentMatch, 
         startNewMatch, 
-        updateStats
+        updateStats,
+        matchTime,
+        setMatchTime
       }}
     >
       {children}
