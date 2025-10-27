@@ -1,11 +1,15 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import type { Match } from '../types';
+import { hashPassword, validatePassword } from '../utils/crypto';
 
 interface MatchContextType {
   currentMatch: Match | null;
   startNewMatch: (homeTeam: string, awayTeam: string, password: string) => Promise<boolean>;
   updateStats: (statType: string, action: string) => void;
   isAuthenticated: boolean;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
+  isPasswordSet: boolean;
+  initializePassword: (password: string) => Promise<void>;
 }
 
 const MatchContext = createContext<MatchContextType | null>(null);
@@ -13,12 +17,39 @@ const MatchContext = createContext<MatchContextType | null>(null);
 export function MatchProvider({ children }: { children: React.ReactNode }) {
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-  // In a real application, this would be stored securely and not hardcoded
-  const CORRECT_PASSWORD = 'IatcoKaR2025'; // "I am the coach of Karlsruhe Rugby 2025"
+  const [passwordHash, setPasswordHash] = useState<string | null>(null);
+
+  // Load password hash from localStorage on component mount
+  useEffect(() => {
+    const storedHash = localStorage.getItem('passwordHash');
+    if (storedHash) {
+      setPasswordHash(storedHash);
+    }
+  }, []);
+
+  const initializePassword = async (password: string) => {
+    const hash = await hashPassword(password);
+    setPasswordHash(hash);
+    localStorage.setItem('passwordHash', hash);
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    if (!passwordHash) return false;
+    
+    const isValid = await validatePassword(currentPassword, passwordHash);
+    if (!isValid) return false;
+
+    const newHash = await hashPassword(newPassword);
+    setPasswordHash(newHash);
+    localStorage.setItem('passwordHash', newHash);
+    return true;
+  };
 
   const startNewMatch = async (homeTeam: string, awayTeam: string, password: string) => {
-    if (password !== CORRECT_PASSWORD) {
+    if (!passwordHash) return false;
+    
+    const isValid = await validatePassword(password, passwordHash);
+    if (!isValid) {
       setIsAuthenticated(false);
       return false;
     }
@@ -90,7 +121,17 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <MatchContext.Provider value={{ currentMatch, startNewMatch, updateStats, isAuthenticated }}>
+    <MatchContext.Provider 
+      value={{ 
+        currentMatch, 
+        startNewMatch, 
+        updateStats, 
+        isAuthenticated,
+        changePassword,
+        isPasswordSet: !!passwordHash,
+        initializePassword
+      }}
+    >
       {children}
     </MatchContext.Provider>
   );
