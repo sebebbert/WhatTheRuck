@@ -26,7 +26,7 @@ export function LiveMatch() {
             <Paper p="md" withBorder>
               <Stack gap="md">
                 <Title order={3}>Scrums</Title>
-                <Group>
+                <Group grow>
                   <Button onClick={() => updateStats('scrum', 'won')}>Won ({currentMatch.stats.scrums.won})</Button>
                   <Button onClick={() => updateStats('scrum', 'lost')}>Lost ({currentMatch.stats.scrums.lost})</Button>
                 </Group>
@@ -38,7 +38,7 @@ export function LiveMatch() {
             <Paper p="md" withBorder>
               <Stack gap="md">
                 <Title order={3}>Lineouts</Title>
-                <Group>
+                <Group grow>
                   <Button onClick={() => updateStats('lineout', 'won')}>Won ({currentMatch.stats.lineouts.won})</Button>
                   <Button onClick={() => updateStats('lineout', 'lost')}>Lost ({currentMatch.stats.lineouts.lost})</Button>
                 </Group>
@@ -50,7 +50,7 @@ export function LiveMatch() {
             <Paper p="md" withBorder>
               <Stack gap="md">
                 <Title order={3}>Knock Ons</Title>
-                <Group>
+                <Group grow>
                   <Button onClick={() => updateStats('knockOn', 'home')}>Produced ({currentMatch.stats.knockOns.home})</Button>
                   <Button onClick={() => updateStats('knockOn', 'away')}>Forced ({currentMatch.stats.knockOns.away})</Button>
                 </Group>
@@ -62,7 +62,7 @@ export function LiveMatch() {
             <Paper p="md" withBorder>
               <Stack gap="md">
                 <Title order={3}>Turnovers</Title>
-                <Group>
+                <Group grow>
                   <Button onClick={() => updateStats('turnover', 'won')}>Won ({currentMatch.stats.turnovers.won})</Button>
                   <Button onClick={() => updateStats('turnover', 'conceded')}>Conceded ({currentMatch.stats.turnovers.conceded})</Button>
                 </Group>
@@ -74,7 +74,7 @@ export function LiveMatch() {
             <Paper p="md" withBorder>
               <Stack gap="md">
                 <Title order={3}>Penalties</Title>
-                <Group>
+                <Group grow>
                   <Button onClick={() => updateStats('penalty', 'for')}>For ({currentMatch.stats.penalties.for})</Button>
                   <Button onClick={() => updateStats('penalty', 'against')}>Against ({currentMatch.stats.penalties.against})</Button>
                 </Group>
@@ -87,25 +87,29 @@ export function LiveMatch() {
               <Stack gap="md">
                 <Title order={3}>Cards</Title>
                 <Grid>
-                  <Grid.Col span={12}>
-                    <Group grow>
-                      <Stack gap="md">
-                        <Button color="yellow" onClick={() => updateStats('card', 'home-yellow')}>
-                          {currentMatch.stats.cards.home.yellow}
-                        </Button>
-                        <Button color="red" onClick={() => updateStats('card', 'home-red')}>
-                          {currentMatch.stats.cards.home.red}
-                        </Button>
-                      </Stack>
-                      <Stack gap="md">
-                        <Button color="yellow" onClick={() => updateStats('card', 'away-yellow')}>
-                          {currentMatch.stats.cards.away.yellow}
-                        </Button>
-                        <Button color="red" onClick={() => updateStats('card', 'away-red')}>
-                          {currentMatch.stats.cards.away.red}
-                        </Button>
-                      </Stack>
-                    </Group>
+                  <Grid.Col span={12}>dd 
+                    <Grid>
+                      <Grid.Col span={6}>
+                        <Stack gap="md">
+                          <Button fullWidth color="yellow" onClick={() => updateStats('card', 'home-yellow')}>
+                            {currentMatch.stats.cards.home.yellow}
+                          </Button>
+                          <Button fullWidth color="red" onClick={() => updateStats('card', 'home-red')}>
+                            {currentMatch.stats.cards.home.red}
+                          </Button>
+                        </Stack>
+                      </Grid.Col>
+                      <Grid.Col span={6}>
+                        <Stack gap="md">
+                          <Button fullWidth color="yellow" onClick={() => updateStats('card', 'away-yellow')}>
+                            {currentMatch.stats.cards.away.yellow}
+                          </Button>
+                          <Button fullWidth color="red" onClick={() => updateStats('card', 'away-red')}>
+                            {currentMatch.stats.cards.away.red}
+                          </Button>
+                        </Stack>
+                      </Grid.Col>
+                    </Grid>
                   </Grid.Col>
                 </Grid>
               </Stack>
