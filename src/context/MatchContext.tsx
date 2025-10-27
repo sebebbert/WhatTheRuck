@@ -3,16 +3,27 @@ import type { Match } from '../types';
 
 interface MatchContextType {
   currentMatch: Match | null;
-  startNewMatch: (homeTeam: string, awayTeam: string) => void;
+  startNewMatch: (homeTeam: string, awayTeam: string, password: string) => Promise<boolean>;
   updateStats: (statType: string, action: string) => void;
+  isAuthenticated: boolean;
 }
 
 const MatchContext = createContext<MatchContextType | null>(null);
 
 export function MatchProvider({ children }: { children: React.ReactNode }) {
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  // In a real application, this would be stored securely and not hardcoded
+  const CORRECT_PASSWORD = 'IatcoKaR2025'; // "I am the coach of Karlsruhe Rugby 2025"
 
-  const startNewMatch = (homeTeam: string, awayTeam: string) => {
+  const startNewMatch = async (homeTeam: string, awayTeam: string, password: string) => {
+    if (password !== CORRECT_PASSWORD) {
+      setIsAuthenticated(false);
+      return false;
+    }
+    
+    setIsAuthenticated(true);
     const newMatch: Match = {
       id: Date.now().toString(),
       date: new Date().toISOString(),
@@ -33,6 +44,7 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
       }
     };
     setCurrentMatch(newMatch);
+    return true;
   };
 
   const updateStats = (statType: string, action: string) => {
@@ -78,7 +90,7 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <MatchContext.Provider value={{ currentMatch, startNewMatch, updateStats }}>
+    <MatchContext.Provider value={{ currentMatch, startNewMatch, updateStats, isAuthenticated }}>
       {children}
     </MatchContext.Provider>
   );

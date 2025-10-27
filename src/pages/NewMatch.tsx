@@ -6,13 +6,20 @@ import { useNavigate } from 'react-router-dom';
 export function NewMatch() {
   const [homeTeam, setHomeTeam] = useState('');
   const [awayTeam, setAwayTeam] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const { startNewMatch } = useMatch();
   const navigate = useNavigate();
 
-  const handleStartMatch = () => {
-    if (homeTeam && awayTeam) {
-      startNewMatch(homeTeam, awayTeam);
-      navigate('/WhatTheRuck/match');
+  const handleStartMatch = async () => {
+    if (homeTeam && awayTeam && password) {
+      setError('');
+      const success = await startNewMatch(homeTeam, awayTeam, password);
+      if (success) {
+        navigate('/WhatTheRuck/match');
+      } else {
+        setError('Incorrect password');
+      }
     }
   };
 
@@ -32,7 +39,15 @@ export function NewMatch() {
           onChange={(e) => setAwayTeam(e.target.value)}
           required
         />
-        <Button onClick={handleStartMatch} disabled={!homeTeam || !awayTeam}>
+        <TextInput
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          error={error}
+          required
+        />
+        <Button onClick={handleStartMatch} disabled={!homeTeam || !awayTeam || !password}>
           Start Match
         </Button>
       </Stack>
