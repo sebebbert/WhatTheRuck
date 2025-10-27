@@ -1,61 +1,18 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 import type { Match } from '../types';
-import { hashPassword, validatePassword } from '../utils/crypto';
 
 interface MatchContextType {
   currentMatch: Match | null;
   startNewMatch: (homeTeam: string, awayTeam: string) => void;
   updateStats: (statType: string, action: string) => void;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
-  isPasswordSet: boolean;
-  initializePassword: (password: string) => Promise<void>;
-  validateSessionPassword: (password: string) => Promise<boolean>;
-  isSessionAuthenticated: boolean;
 }
 
 const MatchContext = createContext<MatchContextType | null>(null);
 
 export function MatchProvider({ children }: { children: React.ReactNode }) {
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
-  const [isSessionAuthenticated, setIsSessionAuthenticated] = useState(false);
-  const [passwordHash, setPasswordHash] = useState<string | null>(null);
-
-  useEffect(() => {
-    const storedHash = localStorage.getItem('passwordHash');
-    setPasswordHash(storedHash);
-  }, []);
-
-  const initializePassword = async (password: string) => {
-    const hash = await hashPassword(password);
-    setPasswordHash(hash);
-    localStorage.setItem('passwordHash', hash);
-  };
-
-  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
-    if (!passwordHash) return false;
-    
-    const isValid = await validatePassword(currentPassword, passwordHash);
-    if (!isValid) return false;
-
-    const newHash = await hashPassword(newPassword);
-    setPasswordHash(newHash);
-    localStorage.setItem('passwordHash', newHash);
-    setIsSessionAuthenticated(false); // Require re-authentication after password change
-    return true;
-  };
-
-  const validateSessionPassword = async (password: string): Promise<boolean> => {
-    if (!passwordHash) return false;
-    const isValid = await validatePassword(password, passwordHash);
-    if (isValid) {
-      setIsSessionAuthenticated(true);
-    }
-    return isValid;
-  };
 
   const startNewMatch = (homeTeam: string, awayTeam: string) => {
-    if (!isSessionAuthenticated) return;
-    
     const newMatch: Match = {
       id: Date.now().toString(),
       date: new Date().toISOString(),
@@ -125,12 +82,7 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
       value={{ 
         currentMatch, 
         startNewMatch, 
-        updateStats, 
-        isSessionAuthenticated,
-        changePassword,
-        isPasswordSet: !!passwordHash,
-        initializePassword,
-        validateSessionPassword
+        updateStats
       }}
     >
       {children}
