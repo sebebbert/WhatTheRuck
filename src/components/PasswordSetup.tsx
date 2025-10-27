@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Button, TextInput, Stack, Title, Container, Paper, Text } from '@mantine/core';
 import { useMatch } from '../context/MatchContext';
+import { useNavigate } from 'react-router-dom';
 
 export function PasswordSetup() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const { initializePassword, isPasswordSet } = useMatch();
+  const { initializePassword } = useMatch();
+  const navigate = useNavigate();
 
   const handleSetPassword = async () => {
     if (password !== confirmPassword) {
@@ -21,11 +23,8 @@ export function PasswordSetup() {
     setPassword('');
     setConfirmPassword('');
     setError('');
+    navigate('/WhatTheRuck/');
   };
-
-  if (isPasswordSet) {
-    return null;
-  }
 
   return (
     <Container size="sm">
