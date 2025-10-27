@@ -87,7 +87,7 @@ export function LiveMatch() {
               <Stack gap="md">
                 <Title order={3}>Cards</Title>
                 <Grid>
-                  <Grid.Col span={12}>dd 
+                  <Grid.Col span={12}>
                     <Grid>
                       <Grid.Col span={6}>
                         <Stack gap="md">
