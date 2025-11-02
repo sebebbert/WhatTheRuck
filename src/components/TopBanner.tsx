@@ -8,7 +8,7 @@ export function TopBanner() {
 
   return (
     <Box component="header" style={{ backgroundColor: bannerColor }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', paddingLeft: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', paddingLeft: 32 }}>
         <img
           src={logoSrc}
           alt="WhatTheRuck"

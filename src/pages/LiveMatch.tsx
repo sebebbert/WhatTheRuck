@@ -31,18 +31,18 @@ export function LiveMatch() {
               <Stack align="center">
                 <Text size="sm">Home Score</Text>
                 <Group>
-                  <Button color="blue" disabled={!timerRunning} onClick={() => addScore('home', 'try')}>Try (+5)</Button>
-                  <Button color="blue" disabled={!timerRunning} onClick={() => addScore('home', 'conversion')}>Conversion (+2)</Button>
-                  <Button color="blue" disabled={!timerRunning} onClick={() => addScore('home', 'penalty')}>Penalty (+3)</Button>
+                  <Button disabled={!timerRunning} onClick={() => addScore('home', 'try')}>Try (+5)</Button>
+                  <Button disabled={!timerRunning} onClick={() => addScore('home', 'conversion')}>Conversion (+2)</Button>
+                  <Button disabled={!timerRunning} onClick={() => addScore('home', 'penalty')}>Penalty (+3)</Button>
                 </Group>
               </Stack>
 
               <Stack align="center">
                 <Text size="sm">Away Score</Text>
                 <Group>
-                  <Button color="blue" disabled={!timerRunning} onClick={() => addScore('away', 'try')}>Try (+5)</Button>
-                  <Button color="blue" disabled={!timerRunning} onClick={() => addScore('away', 'conversion')}>Conversion (+2)</Button>
-                  <Button color="blue" disabled={!timerRunning} onClick={() => addScore('away', 'penalty')}>Penalty (+3)</Button>
+                  <Button disabled={!timerRunning} onClick={() => addScore('away', 'try')}>Try (+5)</Button>
+                  <Button disabled={!timerRunning} onClick={() => addScore('away', 'conversion')}>Conversion (+2)</Button>
+                  <Button disabled={!timerRunning} onClick={() => addScore('away', 'penalty')}>Penalty (+3)</Button>
                 </Group>
               </Stack>
             </Group>
