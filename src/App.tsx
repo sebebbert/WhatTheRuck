@@ -6,6 +6,7 @@ import { RequireAuth } from './components/RequireAuth';
 import { NewMatch } from './pages/NewMatch';
 import { LiveMatch } from './pages/LiveMatch';
 import { Login } from './pages/Login';
+import { TopBanner } from './components/TopBanner';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
       <AuthProvider>
         <MatchProvider>
           <BrowserRouter>
+            <TopBanner />
             <Routes>
               <Route path="/WhatTheRuck/login" element={<Login />} />
               <Route 
