@@ -3,9 +3,10 @@ import { Button, Group, Text } from '@mantine/core';
 
 interface MatchTimerProps {
   onTimeUpdate: (time: number) => void;
+  onRunningChange?: (running: boolean) => void;
 }
 
-export function MatchTimer({ onTimeUpdate }: MatchTimerProps) {
+export function MatchTimer({ onTimeUpdate, onRunningChange }: MatchTimerProps) {
   const [time, setTime] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
 
@@ -38,7 +39,7 @@ export function MatchTimer({ onTimeUpdate }: MatchTimerProps) {
   return (
     <Group>
       <Text size="xl" fw={700}>{formatTime(time)}</Text>
-      <Button onClick={() => setIsRunning(!isRunning)}>
+      <Button onClick={() => setIsRunning(prev => { const next = !prev; onRunningChange?.(next); return next; })}>
         {isRunning ? 'Pause' : 'Start'}
       </Button>
     </Group>
