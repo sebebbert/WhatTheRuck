@@ -4,7 +4,7 @@ import { MatchTimer } from '../components/MatchTimer';
 import { MatchTimeline } from '../components/MatchTimeline';
 
 export function LiveMatch() {
-  const { currentMatch, updateStats, setMatchTime } = useMatch();
+  const { currentMatch, updateStats, setMatchTime, addScore } = useMatch();
 
   if (!currentMatch) {
     return <div>No active match</div>;
@@ -22,6 +22,27 @@ export function LiveMatch() {
               <Text size="xl">{currentMatch.homeTeam}</Text>
               <Text size="xl" fw={700}>{currentMatch.homeScore} - {currentMatch.awayScore}</Text>
               <Text size="xl">{currentMatch.awayTeam}</Text>
+            </Group>
+
+            {/* Score controls */}
+            <Group justify="center" style={{ gap: 24 }}>
+              <Stack align="center">
+                <Text size="sm">Home Score</Text>
+                <Group>
+                  <Button color="blue" onClick={() => addScore('home', 'try')}>Try (+5)</Button>
+                  <Button color="blue" onClick={() => addScore('home', 'conversion')}>Conversion (+2)</Button>
+                  <Button color="blue" onClick={() => addScore('home', 'penalty')}>Penalty (+3)</Button>
+                </Group>
+              </Stack>
+
+              <Stack align="center">
+                <Text size="sm">Away Score</Text>
+                <Group>
+                  <Button color="blue" onClick={() => addScore('away', 'try')}>Try (+5)</Button>
+                  <Button color="blue" onClick={() => addScore('away', 'conversion')}>Conversion (+2)</Button>
+                  <Button color="blue" onClick={() => addScore('away', 'penalty')}>Penalty (+3)</Button>
+                </Group>
+              </Stack>
             </Group>
           </Stack>
         </Paper>

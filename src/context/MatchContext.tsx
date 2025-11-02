@@ -5,6 +5,7 @@ interface MatchContextType {
   currentMatch: Match | null;
   startNewMatch: (homeTeam: string, awayTeam: string) => void;
   updateStats: (statType: string, action: string, matchTime?: number) => void;
+  addScore: (team: 'home' | 'away', type: 'try' | 'conversion' | 'penalty', time?: number) => void;
   matchTime: number;
   setMatchTime: (time: number) => void;
 }
@@ -45,8 +46,10 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
 
     setCurrentMatch(prev => {
       if (!prev) return null;
-      const newMatch = { ...prev };
-      
+      // create a deep copy to avoid mutating nested objects on the previous state
+      const newMatch: Match = JSON.parse(JSON.stringify(prev));
+
+
       // Add event to timeline
       const event: MatchEvent = {
         type: statType,
@@ -91,12 +94,53 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const addScore = (team: 'home' | 'away', type: 'try' | 'conversion' | 'penalty', time?: number) => {
+    if (!currentMatch) return;
+
+    setCurrentMatch(prev => {
+      if (!prev) return null;
+      // deep clone previous to avoid accidental nested mutation
+      const newMatch: Match = JSON.parse(JSON.stringify(prev));
+
+      // determine points
+      let points = 0;
+      switch (type) {
+        case 'try':
+          points = 5;
+          break;
+        case 'conversion':
+          points = 2;
+          break;
+        case 'penalty':
+          points = 3;
+          break;
+      }
+
+      if (team === 'home') newMatch.homeScore += points;
+      else newMatch.awayScore += points;
+
+      // Add event to timeline
+      
+      const scoreAction = `${team}-${type}`;
+      const event: MatchEvent = {
+        type: 'score',
+        action: scoreAction,
+        time: time ?? matchTime,
+        timestamp: (new Date).toISOString()
+      };
+      newMatch.events = [...newMatch.events, event];
+
+      return newMatch;
+    });
+  };
+
   return (
     <MatchContext.Provider 
       value={{ 
         currentMatch, 
         startNewMatch, 
         updateStats,
+        addScore,
         matchTime,
         setMatchTime
       }}
