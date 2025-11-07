@@ -1,4 +1,5 @@
 import { MantineProvider } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MatchProvider } from './context/MatchContext';
 import { AuthProvider } from './context/AuthContext';
@@ -15,6 +16,7 @@ function App() {
       <AuthProvider>
         <MatchProvider>
           <BrowserRouter>
+            <Notifications />
             <TopBanner />
             <Routes>
               <Route path="/WhatTheRuck/login" element={<Login />} />

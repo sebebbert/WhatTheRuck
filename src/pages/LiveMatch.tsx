@@ -2,6 +2,8 @@ import { useMatch } from '../context/MatchContext';
 import { useState } from 'react';
 import { Button, Group, Stack, Title, Container, Grid, Paper, Text } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
+// optional import; ensure @mantine/notifications is installed locally
+import { showNotification } from '@mantine/notifications';
 import { MatchTimer } from '../components/MatchTimer';
 import { MatchTimeline } from '../components/MatchTimeline';
 
@@ -21,7 +23,19 @@ export function LiveMatch() {
         
         <Paper p="md" withBorder>
             <Stack gap="md">
-            <MatchTimer onTimeUpdate={setMatchTime} onRunningChange={setTimerRunning} onFinish={() => { finishMatch(); navigate('/WhatTheRuck/history'); }} />
+            <MatchTimer onTimeUpdate={setMatchTime} onRunningChange={setTimerRunning} onFinish={() => {
+              finishMatch();
+              // show a toast if notifications are available, otherwise fallback to console
+              try {
+                showNotification({ title: 'Match saved', message: 'Match was saved to history.' });
+              } catch (e) {
+                // notifications package not installed or runtime error
+                // keep this silent in production, but log during development
+                // eslint-disable-next-line no-console
+                console.log('Match saved');
+              }
+              navigate('/WhatTheRuck/history');
+            }} />
             <Group justify="space-between">
               <Text size="xl">{currentMatch.homeTeam}</Text>
               <Text size="xl" fw={700}>{currentMatch.homeScore} - {currentMatch.awayScore}</Text>
