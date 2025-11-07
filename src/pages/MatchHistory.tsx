@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Container, Title, Stack, Paper, Text, Button, Group } from '@mantine/core';
+import { Container, Title, Stack, Paper, Text, Button, Group, Modal } from '@mantine/core';
+import { showNotification } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
 
 export function MatchHistory() {
   const [matches, setMatches] = useState<Array<any>>([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [toDeleteId, setToDeleteId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,6 +49,7 @@ export function MatchHistory() {
               </div>
               <div>
                 <Text>Duration: {formatTime(m.finalTime)}</Text>
+                <Button color="red" variant="light" onClick={() => { setToDeleteId(m.id || m._tempId || String(idx)); setConfirmOpen(true); }}>Delete</Button>
               </div>
             </Group>
 
@@ -62,6 +66,31 @@ export function MatchHistory() {
             )}
           </Paper>
         ))}
+        <Modal opened={confirmOpen} onClose={() => { setConfirmOpen(false); setToDeleteId(null); }} title="Delete match" centered>
+          <Stack>
+            <Text>Are you sure you want to permanently delete this match from history?</Text>
+            <Group style={{ justifyContent: 'flex-end' }}>
+              <Button variant="default" onClick={() => { setConfirmOpen(false); setToDeleteId(null); }}>Cancel</Button>
+              <Button color="red" onClick={() => {
+                if (!toDeleteId) return;
+                try {
+                  const stored = localStorage.getItem('wtr_matches');
+                  const parsed = stored ? JSON.parse(stored) : [];
+                  const filtered = parsed.filter((it: any) => (it.id || String(it._tempId)) !== toDeleteId);
+                  localStorage.setItem('wtr_matches', JSON.stringify(filtered));
+                  setMatches(filtered.reverse());
+                  showNotification({ title: 'Deleted', message: 'Match deleted from history.' });
+                } catch (e) {
+                  // eslint-disable-next-line no-console
+                  console.error('Failed to delete match', e);
+                } finally {
+                  setConfirmOpen(false);
+                  setToDeleteId(null);
+                }
+              }}>Delete</Button>
+            </Group>
+          </Stack>
+        </Modal>
       </Stack>
     </Container>
   );

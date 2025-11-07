@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMatch } from '../context/MatchContext';
 import { Button, TextInput, Stack, Title, Container } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
@@ -6,8 +6,19 @@ import { useNavigate } from 'react-router-dom';
 export function NewMatch() {
   const [homeTeam, setHomeTeam] = useState('');
   const [awayTeam, setAwayTeam] = useState('');
+  const [hasHistory, setHasHistory] = useState(false);
   const { startNewMatch } = useMatch();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('wtr_matches');
+      const parsed = stored ? JSON.parse(stored) : [];
+      setHasHistory(Array.isArray(parsed) && parsed.length > 0);
+    } catch (e) {
+      setHasHistory(false);
+    }
+  }, []);
 
   const handleStartMatch = () => {
     if (homeTeam && awayTeam) {
@@ -38,6 +49,9 @@ export function NewMatch() {
         >
           Start Match
         </Button>
+        {hasHistory && (
+          <Button variant="outline" onClick={() => navigate('/WhatTheRuck/history')}>View Match History</Button>
+        )}
       </Stack>
     </Container>
   );
