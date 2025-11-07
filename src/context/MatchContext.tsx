@@ -8,6 +8,7 @@ interface MatchContextType {
   addScore: (team: 'home' | 'away', type: 'try' | 'conversion' | 'penalty', time?: number) => void;
   matchTime: number;
   setMatchTime: (time: number) => void;
+  finishMatch: () => void;
 }
 
 const MatchContext = createContext<MatchContextType | null>(null);
@@ -134,6 +135,25 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const finishMatch = () => {
+    if (!currentMatch) return;
+
+    try {
+      const stored = localStorage.getItem('wtr_matches');
+      const matches = stored ? JSON.parse(stored) : [];
+      // Include final time and finished timestamp when saving
+      const finished = { ...currentMatch, finalTime: matchTime, finishedAt: new Date().toISOString() } as any;
+      matches.push(finished);
+      localStorage.setItem('wtr_matches', JSON.stringify(matches));
+    } catch (e) {
+      // ignore storage errors
+      console.error('Failed to persist finished match', e);
+    }
+
+    setCurrentMatch(null);
+    setMatchTime(0);
+  };
+
   return (
     <MatchContext.Provider 
       value={{ 
@@ -141,6 +161,7 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
         startNewMatch, 
         updateStats,
         addScore,
+        finishMatch,
         matchTime,
         setMatchTime
       }}

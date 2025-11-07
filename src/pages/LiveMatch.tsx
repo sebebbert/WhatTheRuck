@@ -1,12 +1,14 @@
 import { useMatch } from '../context/MatchContext';
 import { useState } from 'react';
 import { Button, Group, Stack, Title, Container, Grid, Paper, Text } from '@mantine/core';
+import { useNavigate } from 'react-router-dom';
 import { MatchTimer } from '../components/MatchTimer';
 import { MatchTimeline } from '../components/MatchTimeline';
 
 export function LiveMatch() {
-  const { currentMatch, updateStats, setMatchTime, addScore } = useMatch();
+  const { currentMatch, updateStats, setMatchTime, addScore, finishMatch } = useMatch();
   const [timerRunning, setTimerRunning] = useState(false);
+  const navigate = useNavigate();
 
   if (!currentMatch) {
     return <div>No active match</div>;
@@ -19,7 +21,7 @@ export function LiveMatch() {
         
         <Paper p="md" withBorder>
             <Stack gap="md">
-            <MatchTimer onTimeUpdate={setMatchTime} onRunningChange={setTimerRunning} />
+            <MatchTimer onTimeUpdate={setMatchTime} onRunningChange={setTimerRunning} onFinish={() => { finishMatch(); navigate('/WhatTheRuck/history'); }} />
             <Group justify="space-between">
               <Text size="xl">{currentMatch.homeTeam}</Text>
               <Text size="xl" fw={700}>{currentMatch.homeScore} - {currentMatch.awayScore}</Text>

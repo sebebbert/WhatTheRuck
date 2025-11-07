@@ -6,6 +6,7 @@ import { RequireAuth } from './components/RequireAuth';
 import { NewMatch } from './pages/NewMatch';
 import { LiveMatch } from './pages/LiveMatch';
 import { Login } from './pages/Login';
+import { MatchHistory } from './pages/MatchHistory';
 import { TopBanner } from './components/TopBanner';
 
 function App() {
@@ -32,6 +33,14 @@ function App() {
                     <LiveMatch />
                   </RequireAuth>
                 } 
+              />
+              <Route
+                path="/WhatTheRuck/history"
+                element={
+                  <RequireAuth>
+                    <MatchHistory />
+                  </RequireAuth>
+                }
               />
             </Routes>
           </BrowserRouter>
