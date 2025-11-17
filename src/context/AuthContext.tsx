@@ -1,77 +1,36 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { validatePassword, hashPassword } from '../utils/crypto';
-
-interface User {
-  username: string;
-  role: 'user' | 'admin';
-}
+import { createContext, useContext, useEffect, useState } from 'react';
+import { auth } from '../firebase';
+import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
+import type { User as FirebaseUser } from 'firebase/auth';
 
 interface AuthContextType {
-  user: User | null;
-  login: (username: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  user: FirebaseUser | null;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const STORED_USERS_KEY = 'wtr_users';
-const CURRENT_USER_KEY = 'wtr_current_user';
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
 
   useEffect(() => {
-    // Try to restore user session
-    const storedUser = localStorage.getItem(CURRENT_USER_KEY);
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+    });
+    return () => unsub();
   }, []);
 
-  const login = async (username: string, password: string) => {
-    // Get stored users
-    const storedUsers = localStorage.getItem(STORED_USERS_KEY);
-    const users = storedUsers ? JSON.parse(storedUsers) : {};
-
-    // For first-time setup, create an admin user
-    if (Object.keys(users).length === 0) {
-      const adminHash = await hashPassword('admin');
-      users.admin = {
-        passwordHash: adminHash,
-        role: 'admin'
-      };
-      localStorage.setItem(STORED_USERS_KEY, JSON.stringify(users));
-    }
-
-    const userInfo = users[username];
-    if (!userInfo) return false;
-
-    const isValid = await validatePassword(password, userInfo.passwordHash);
-    if (!isValid) return false;
-
-    const userData: User = {
-      username,
-      role: userInfo.role
-    };
-
-    setUser(userData);
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userData));
-    return true;
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem(CURRENT_USER_KEY);
+  const logout = async () => {
+    await firebaseSignOut(auth);
   };
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        login, 
+    <AuthContext.Provider
+      value={{
+        user,
         logout,
-        isAuthenticated: user !== null
+        isAuthenticated: user !== null,
       }}
     >
       {children}

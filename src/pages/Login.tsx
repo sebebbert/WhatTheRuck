@@ -1,58 +1,66 @@
-import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { Button, TextInput, Stack, Title, Container, Alert } from '@mantine/core';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Container, Title, Stack } from '@mantine/core';
+import { auth } from '../firebase';
+import * as firebaseui from 'firebaseui';
+import { EmailAuthProvider } from 'firebase/auth';
 
 export function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
   const from = location.state?.from?.pathname || '/WhatTheRuck';
 
-  const handleLogin = async () => {
-    if (username && password) {
-      const success = await login(username, password);
-      if (success) {
-        navigate(from, { replace: true });
-      } else {
-        setError('Invalid username or password');
-      }
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    // Reuse or create AuthUI instance
+    let ui: firebaseui.auth.AuthUI | null = null;
+    try {
+      // @ts-ignore
+      ui = firebaseui.auth.AuthUI.getInstance() as firebaseui.auth.AuthUI | null;
+    } catch (e) {
+      ui = null;
     }
-  };
+    if (!ui) ui = new firebaseui.auth.AuthUI(auth);
+
+    const uiConfig: firebaseui.auth.Config = {
+      // standard Email/Password provider
+      signInOptions: [EmailAuthProvider.PROVIDER_ID],
+      callbacks: {
+        signInSuccessWithAuthResult: () => {
+          navigate(from, { replace: true });
+          return false;
+        },
+      },
+      signInFlow: 'popup',
+    };
+
+    // Start UI once the container is available
+    const start = async () => {
+      for (let i = 0; i < 20; i++) {
+        if (containerRef.current) break;
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      if (containerRef.current) ui!.start(containerRef.current, uiConfig);
+    };
+    start();
+
+    return () => {
+      try {
+        ui?.reset();
+      } catch (e) {
+        // ignore
+      }
+    };
+  }, [navigate, from]);
 
   return (
     <Container size="xs">
-      <Stack gap="md">
+      <Stack>
         <Title order={2}>Login</Title>
-        {error && (
-          <Alert color="red" title="Error">
-            {error}
-          </Alert>
-        )}
-        <TextInput
-          label="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-        <TextInput
-          type="password"
-          label="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <Button 
-          onClick={handleLogin} 
-          disabled={!username || !password}
-        >
-          Login
-        </Button>
       </Stack>
+
+      <div id="firebaseui-auth-container" ref={containerRef} />
     </Container>
   );
 }

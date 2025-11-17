@@ -23,6 +23,59 @@ A simple web app to live track rugby statistics from the sideline
     * Enable GitHub Pages in repository settings
     * Set build directory to `dist`
 
+  ## Firebase Authentication (FirebaseUI)
+
+  This project can use Firebase Authentication with FirebaseUI for a secure, maintained auth flow.
+
+  1. Install required packages:
+
+  ```powershell
+  npm install firebase firebaseui
+  ```
+
+  2. Add environment variables for Firebase (create a `.env` or `.env.local` in the project root):
+
+  ```
+  VITE_FIREBASE_API_KEY=your_api_key
+  VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+  VITE_FIREBASE_PROJECT_ID=your_project_id
+  VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+  VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+  VITE_FIREBASE_APP_ID=your_app_id
+  ```
+
+  3. Supported sign-in providers configured in the app: Email/Password and Google. Enable them in the Firebase Console -> Authentication -> Sign-in method.
+
+  4. Run the app and visit the login route:
+
+  ```powershell
+  npm run dev
+  # open http://localhost:5173/WhatTheRuck/login
+  ```
+
+  Notes:
+  - The app uses `src/firebase.ts` to read the config from `import.meta.env`.
+  - FirebaseUI CSS is imported globally in `src/main.tsx`.
+
+  ### GitHub Pages / CI
+
+  To deploy to GitHub Pages while keeping Firebase credentials secret, store the `VITE_FIREBASE_*` values as GitHub repository secrets and use a CI workflow that injects them at build time. A sample GitHub Actions workflow is provided at `.github/workflows/gh-pages-deploy.yml`.
+
+  Steps:
+
+  1. In your repository on GitHub, go to Settings → Secrets → Actions and add the following secrets:
+    - `VITE_FIREBASE_API_KEY`
+    - `VITE_FIREBASE_AUTH_DOMAIN`
+    - `VITE_FIREBASE_PROJECT_ID`
+    - `VITE_FIREBASE_STORAGE_BUCKET`
+    - `VITE_FIREBASE_MESSAGING_SENDER_ID`
+    - `VITE_FIREBASE_APP_ID`
+
+  2. The included workflow will read those secrets during the build and deploy the `dist` folder to the `gh-pages` branch.
+
+  If you prefer to build locally and push static files, keep in mind building locally will bake the env values into the build — do not commit any files that contain secrets.
+
+
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

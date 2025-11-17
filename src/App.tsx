@@ -1,6 +1,6 @@
 import { MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MatchProvider } from './context/MatchContext';
 import { AuthProvider } from './context/AuthContext';
 import { RequireAuth } from './components/RequireAuth';
@@ -19,6 +19,7 @@ function App() {
             <Notifications />
             <TopBanner />
             <Routes>
+              <Route path="/" element={<Navigate to="/WhatTheRuck" replace />} />
               <Route path="/WhatTheRuck/login" element={<Login />} />
               <Route 
                 path="/WhatTheRuck" 
