@@ -1,7 +1,8 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import type { Match, MatchEvent } from '../types';
 import { useAuth } from './AuthContext';
 import { db } from '../firebase';
+import { LOCAL_PENDING_MATCHES_KEY } from '../constants';
 import {
   collection,
   addDoc,
@@ -28,6 +29,7 @@ interface MatchContextType {
   loadMatches: (userId?: string) => Promise<Match[]>;
   subscribeToMatches: (userId: string, cb: (matches: Match[]) => void) => () => void;
   deleteMatch: (matchId: string) => Promise<boolean>;
+  syncPendingMatches: () => Promise<void>;
 }
 
 const MatchContext = createContext<MatchContextType | null>(null);
@@ -158,23 +160,26 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
   const finishMatch = () => {
     if (!currentMatch) return;
 
-    if (!user) {
-      console.warn('User not authenticated — match not saved. Sign in to persist matches.');
-      setCurrentMatch(null);
-      setMatchTime(0);
-      return;
-    }
+    const finishedBase: any = { ...currentMatch, finalTime: matchTime, finishedAt: new Date().toISOString() };
 
-    (async () => {
-      try {
-        const finished: any = { ...currentMatch, finalTime: matchTime, finishedAt: new Date().toISOString() };
-        finished.userId = user.uid;
-        finished.createdAt = serverTimestamp();
-        await addDoc(collection(db, 'matches'), finished as DocumentData);
-      } catch (e) {
-        console.error('Failed to persist finished match to Firestore', e);
-      }
-    })();
+    // If online and authenticated, persist to Firestore immediately.
+    if (navigator.onLine && user) {
+      (async () => {
+        try {
+          const finished: any = { ...finishedBase };
+          finished.userId = user.uid;
+          finished.createdAt = serverTimestamp();
+          await addDoc(collection(db, 'matches'), finished as DocumentData);
+        } catch (e) {
+          console.error('Failed to persist finished match to Firestore', e);
+          // fallback to local pending queue
+          savePendingMatch(finishedBase);
+        }
+      })();
+    } else {
+      // save locally for offline/unauthenticated usage
+      savePendingMatch(finishedBase);
+    }
 
     setCurrentMatch(null);
     setMatchTime(0);
@@ -212,6 +217,80 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
     return unsub;
   };
 
+  // --- Local pending queue helpers (for offline use) ---
+  const getPendingMatches = (): Array<any> => {
+    try {
+      const raw = localStorage.getItem(LOCAL_PENDING_MATCHES_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      console.error('Failed to read pending matches from localStorage', e);
+      return [];
+    }
+  };
+
+  const savePendingMatches = (items: Array<any>) => {
+    try {
+      localStorage.setItem(LOCAL_PENDING_MATCHES_KEY, JSON.stringify(items));
+    } catch (e) {
+      console.error('Failed to write pending matches to localStorage', e);
+    }
+  };
+
+  const savePendingMatch = (matchObj: any) => {
+    const pending = getPendingMatches();
+    const tempId = `${Date.now()}-${Math.random().toString(36).slice(2,9)}`;
+    const item = { ...matchObj, _tempId: tempId };
+    pending.push(item);
+    savePendingMatches(pending);
+  };
+
+  const removePendingByTempId = (tempId: string) => {
+    const pending = getPendingMatches();
+    const filtered = pending.filter((p) => p._tempId !== tempId);
+    savePendingMatches(filtered);
+  };
+
+  // Attempt to sync any pending matches from localStorage to Firestore.
+  const syncPendingMatches = async () => {
+    if (!navigator.onLine) return;
+    const pending = getPendingMatches();
+    if (!pending || pending.length === 0) return;
+    if (!user) {
+      // cannot sync without authentication (rules require userId)
+      return;
+    }
+
+    for (const p of pending) {
+      try {
+        const docData: any = { ...p };
+        // ensure we do not send the temp id to Firestore
+        delete docData._tempId;
+        docData.userId = user.uid;
+        docData.createdAt = serverTimestamp();
+        await addDoc(collection(db, 'matches'), docData as DocumentData);
+        // remove from pending after success
+        if (p._tempId) removePendingByTempId(p._tempId);
+      } catch (e) {
+        // leave it in the queue and continue with others
+        console.error('Failed to sync pending match', e);
+      }
+    }
+  };
+
+  // Sync pending on auth change or when coming online
+  useEffect(() => {
+    // attempt initial sync when user becomes available and online
+    if (user && navigator.onLine) {
+      syncPendingMatches();
+    }
+
+    const onOnline = () => {
+      if (user) syncPendingMatches();
+    };
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [user?.uid]);
+
   // Delete a match document if the current user is the owner
   const deleteMatch = async (matchId: string) => {
     if (!user) {
@@ -247,7 +326,8 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
         setMatchTime,
         loadMatches,
         subscribeToMatches,
-        deleteMatch
+        deleteMatch,
+        syncPendingMatches
       }}
     >
       {children}
