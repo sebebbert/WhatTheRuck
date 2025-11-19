@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Container, Title, Stack, Paper, Text, Button, Group, Modal } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
+import { useMatch } from '../context/MatchContext';
+import { useAuth } from '../context/AuthContext';
 
 export function MatchHistory() {
   const [matches, setMatches] = useState<Array<any>>([]);
@@ -9,15 +11,23 @@ export function MatchHistory() {
   const [toDeleteId, setToDeleteId] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  const { user } = useAuth();
+  const { loadMatches, subscribeToMatches, deleteMatch } = useMatch();
+
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('wtr_matches');
-      const parsed = stored ? JSON.parse(stored) : [];
-      setMatches(parsed.reverse()); // newest first
-    } catch (e) {
-      setMatches([]);
+    let unsub: (() => void) | undefined;
+    if (user?.uid) {
+      unsub = subscribeToMatches(user.uid, (m) => setMatches(m));
+    } else {
+      (async () => {
+        const m = await loadMatches();
+        setMatches(m.reverse());
+      })();
     }
-  }, []);
+    return () => {
+      if (unsub) unsub();
+    };
+  }, [user?.uid]);
 
   const formatTime = (seconds: number | undefined) => {
     if (seconds === undefined || seconds === null) return '00:00';
@@ -71,15 +81,12 @@ export function MatchHistory() {
             <Text>Are you sure you want to permanently delete this match from history?</Text>
             <Group style={{ justifyContent: 'flex-end' }}>
               <Button variant="default" onClick={() => { setConfirmOpen(false); setToDeleteId(null); }}>Cancel</Button>
-              <Button color="red" onClick={() => {
+              <Button color="red" onClick={async () => {
                 if (!toDeleteId) return;
                 try {
-                  const stored = localStorage.getItem('wtr_matches');
-                  const parsed = stored ? JSON.parse(stored) : [];
-                  const filtered = parsed.filter((it: any) => (it.id || String(it._tempId)) !== toDeleteId);
-                  localStorage.setItem('wtr_matches', JSON.stringify(filtered));
-                  setMatches(filtered.reverse());
-                  showNotification({ title: 'Deleted', message: 'Match deleted from history.' });
+                  const ok = await deleteMatch(toDeleteId);
+                  if (ok) showNotification({ title: 'Deleted', message: 'Match deleted from history.' });
+                  else showNotification({ title: 'Delete failed', message: 'Could not delete match.' });
                 } catch (e) {
                   // eslint-disable-next-line no-console
                   console.error('Failed to delete match', e);

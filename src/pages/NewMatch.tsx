@@ -7,17 +7,18 @@ export function NewMatch() {
   const [homeTeam, setHomeTeam] = useState('');
   const [awayTeam, setAwayTeam] = useState('');
   const [hasHistory, setHasHistory] = useState(false);
-  const { startNewMatch } = useMatch();
+  const { startNewMatch, loadMatches } = useMatch();
   const navigate = useNavigate();
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('wtr_matches');
-      const parsed = stored ? JSON.parse(stored) : [];
-      setHasHistory(Array.isArray(parsed) && parsed.length > 0);
-    } catch (e) {
-      setHasHistory(false);
-    }
+    (async () => {
+      try {
+        const matches = await loadMatches();
+        setHasHistory(Array.isArray(matches) && matches.length > 0);
+      } catch (e) {
+        setHasHistory(false);
+      }
+    })();
   }, []);
 
   const handleStartMatch = () => {

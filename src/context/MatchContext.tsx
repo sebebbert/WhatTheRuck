@@ -1,5 +1,21 @@
 import { createContext, useContext, useState } from 'react';
 import type { Match, MatchEvent } from '../types';
+import { useAuth } from './AuthContext';
+import { db } from '../firebase';
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  onSnapshot,
+  doc,
+  getDoc,
+  deleteDoc,
+} from 'firebase/firestore';
+import type { DocumentData } from 'firebase/firestore';
 
 interface MatchContextType {
   currentMatch: Match | null;
@@ -9,6 +25,9 @@ interface MatchContextType {
   matchTime: number;
   setMatchTime: (time: number) => void;
   finishMatch: () => void;
+  loadMatches: (userId?: string) => Promise<Match[]>;
+  subscribeToMatches: (userId: string, cb: (matches: Match[]) => void) => () => void;
+  deleteMatch: (matchId: string) => Promise<boolean>;
 }
 
 const MatchContext = createContext<MatchContextType | null>(null);
@@ -16,6 +35,7 @@ const MatchContext = createContext<MatchContextType | null>(null);
 export function MatchProvider({ children }: { children: React.ReactNode }) {
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
   const [matchTime, setMatchTime] = useState(0);
+  const { user } = useAuth();
 
   const startNewMatch = (homeTeam: string, awayTeam: string) => {
     const newMatch: Match = {
@@ -138,20 +158,81 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
   const finishMatch = () => {
     if (!currentMatch) return;
 
-    try {
-      const stored = localStorage.getItem('wtr_matches');
-      const matches = stored ? JSON.parse(stored) : [];
-      // Include final time and finished timestamp when saving
-      const finished = { ...currentMatch, finalTime: matchTime, finishedAt: new Date().toISOString() } as any;
-      matches.push(finished);
-      localStorage.setItem('wtr_matches', JSON.stringify(matches));
-    } catch (e) {
-      // ignore storage errors
-      console.error('Failed to persist finished match', e);
+    if (!user) {
+      console.warn('User not authenticated — match not saved. Sign in to persist matches.');
+      setCurrentMatch(null);
+      setMatchTime(0);
+      return;
     }
+
+    (async () => {
+      try {
+        const finished: any = { ...currentMatch, finalTime: matchTime, finishedAt: new Date().toISOString() };
+        finished.userId = user.uid;
+        finished.createdAt = serverTimestamp();
+        await addDoc(collection(db, 'matches'), finished as DocumentData);
+      } catch (e) {
+        console.error('Failed to persist finished match to Firestore', e);
+      }
+    })();
 
     setCurrentMatch(null);
     setMatchTime(0);
+  };
+
+  // Load matches for a given userId (or current user if not provided)
+  const loadMatches = async (userId?: string) => {
+    const uid = userId ?? user?.uid;
+    if (!uid) return [];
+    try {
+      const q = query(
+        collection(db, 'matches'),
+        where('userId', '==', uid),
+        orderBy('createdAt', 'desc')
+      );
+      const snap = await getDocs(q);
+      const matches: Match[] = snap.docs.map(d => ({ ...(d.data() as any), id: d.id } as Match));
+      return matches;
+    } catch (e) {
+      console.error('Failed to load matches', e);
+      return [];
+    }
+  };
+
+  // Subscribe to matches for a user; returns unsubscribe
+  const subscribeToMatches = (userId: string, cb: (matches: Match[]) => void) => {
+    const q = query(collection(db, 'matches'), where('userId', '==', userId), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, (snap) => {
+      const matches = snap.docs.map(d => ({ ...(d.data() as any), id: d.id } as Match));
+      cb(matches);
+    }, (err) => {
+      console.error('Matches subscription error', err);
+      cb([]);
+    });
+    return unsub;
+  };
+
+  // Delete a match document if the current user is the owner
+  const deleteMatch = async (matchId: string) => {
+    if (!user) {
+      console.warn('Not authenticated. Cannot delete match.');
+      return false;
+    }
+    try {
+      const ref = doc(db, 'matches', matchId);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return false;
+      const data = snap.data() as any;
+      if (data.userId !== user.uid) {
+        console.warn('User not authorized to delete this match');
+        return false;
+      }
+      await deleteDoc(ref);
+      return true;
+    } catch (e) {
+      console.error('Failed to delete match', e);
+      return false;
+    }
   };
 
   return (
@@ -163,7 +244,10 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
         addScore,
         finishMatch,
         matchTime,
-        setMatchTime
+        setMatchTime,
+        loadMatches,
+        subscribeToMatches,
+        deleteMatch
       }}
     >
       {children}
