@@ -4,7 +4,7 @@ import { showNotification } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
 import { useMatch } from '../context/MatchContext';
 import { useAuth } from '../context/AuthContext';
-import { LOCAL_PENDING_MATCHES_KEY } from '../constants';
+import { LOCAL_PENDING_MATCHES_KEY, LEGACY_MATCHES_KEY } from '../constants';
 
 export function MatchHistory() {
   const [matches, setMatches] = useState<Array<any>>([]);
@@ -13,8 +13,9 @@ export function MatchHistory() {
   const navigate = useNavigate();
 
   const { user } = useAuth();
-    const { loadMatches, subscribeToMatches, deleteMatch, syncPendingMatches } = useMatch();
+    const { loadMatches, subscribeToMatches, deleteMatch, syncPendingMatches, migrateLegacyItem } = useMatch();
     const [pendingMatches, setPendingMatches] = useState<Array<any>>([]);
+    const [legacyMatches, setLegacyMatches] = useState<Array<any>>([]);
 
   useEffect(() => {
     let unsub: (() => void) | undefined;
@@ -31,7 +32,7 @@ export function MatchHistory() {
     };
   }, [user?.uid]);
 
-    // load pending matches from localStorage
+    // load pending and legacy matches from localStorage
     const loadPending = () => {
       try {
         const raw = localStorage.getItem(LOCAL_PENDING_MATCHES_KEY);
@@ -42,10 +43,22 @@ export function MatchHistory() {
       }
     };
 
+      const loadLegacy = () => {
+        try {
+          const raw = localStorage.getItem(LEGACY_MATCHES_KEY);
+          const parsed = raw ? JSON.parse(raw) : [];
+          setLegacyMatches(Array.isArray(parsed) ? parsed.reverse() : []);
+        } catch (e) {
+          setLegacyMatches([]);
+        }
+      };
+
     useEffect(() => {
       loadPending();
+      loadLegacy();
       const onStorage = (e: StorageEvent) => {
         if (e.key === LOCAL_PENDING_MATCHES_KEY) loadPending();
+        if (e.key === LEGACY_MATCHES_KEY) loadLegacy();
       };
       const onOnline = () => loadPending();
       window.addEventListener('storage', onStorage);
@@ -70,6 +83,43 @@ export function MatchHistory() {
           <Title order={2}>Match History</Title>
           <Button onClick={() => navigate('/WhatTheRuck')}>Back</Button>
         </Group>
+
+        {legacyMatches.length > 0 && (
+          <Paper p="md" withBorder>
+            <Group style={{ justifyContent: 'space-between' }}>
+              <div>
+                <Text size="lg" fw={700}>Legacy Matches</Text>
+                <Text c="dimmed">These matches were stored by an older version. Migrate them individually to Firestore.</Text>
+              </div>
+            </Group>
+
+            <Stack mt="sm">
+              {legacyMatches.map((m: any, idx: number) => (
+                <Paper key={m._tempId || m.id || idx} p="sm">
+                  <Text size="md" fw={600}>{m.homeTeam} {m.homeScore} - {m.awayScore} {m.awayTeam}</Text>
+                  <Text c="dimmed">Date: {new Date(m.finishedAt || m.date).toLocaleString()}</Text>
+                  <Group style={{ justifyContent: 'flex-end', marginTop: 8 }}>
+                    <Button onClick={async () => {
+                      try {
+                        const id = m._tempId ?? m.id;
+                        const res = await migrateLegacyItem(id);
+                        if (res.migrated) showNotification({ title: 'Migrated', message: 'Match uploaded to Firestore.' });
+                        else if (res.movedToPending) showNotification({ title: 'Queued', message: 'Match moved to pending queue.' });
+                        else showNotification({ title: 'Migration failed', message: res.error || 'Could not migrate match.' });
+                      } catch (e) {
+                        console.error(e);
+                        showNotification({ title: 'Migration failed', message: 'Could not migrate match.' });
+                      } finally {
+                        loadPending();
+                        loadLegacy();
+                      }
+                    }}>Migrate</Button>
+                  </Group>
+                </Paper>
+              ))}
+            </Stack>
+          </Paper>
+        )}
 
         {pendingMatches.length > 0 && (
           <Paper p="md" withBorder>

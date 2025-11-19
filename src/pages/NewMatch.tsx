@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMatch } from '../context/MatchContext';
+import { LOCAL_PENDING_MATCHES_KEY, LEGACY_MATCHES_KEY } from '../constants';
 import { Button, TextInput, Stack, Title, Container } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,7 +15,21 @@ export function NewMatch() {
     (async () => {
       try {
         const matches = await loadMatches();
-        setHasHistory(Array.isArray(matches) && matches.length > 0);
+        // Also check localStorage legacy and pending keys for offline history
+        let hasLocal = false;
+        try {
+          const rawLegacy = localStorage.getItem(LEGACY_MATCHES_KEY);
+          const rawPending = localStorage.getItem(LOCAL_PENDING_MATCHES_KEY);
+          const legacyArr = rawLegacy ? JSON.parse(rawLegacy) : [];
+          const pendingArr = rawPending ? JSON.parse(rawPending) : [];
+          if ((Array.isArray(legacyArr) && legacyArr.length > 0) || (Array.isArray(pendingArr) && pendingArr.length > 0)) {
+            hasLocal = true;
+          }
+        } catch (e) {
+          hasLocal = false;
+        }
+
+        setHasHistory((Array.isArray(matches) && matches.length > 0) || hasLocal);
       } catch (e) {
         setHasHistory(false);
       }

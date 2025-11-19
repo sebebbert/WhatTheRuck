@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import type { Match, MatchEvent } from '../types';
 import { useAuth } from './AuthContext';
 import { db } from '../firebase';
-import { LOCAL_PENDING_MATCHES_KEY } from '../constants';
+import { LOCAL_PENDING_MATCHES_KEY, LEGACY_MATCHES_KEY } from '../constants';
 import {
   collection,
   addDoc,
@@ -30,6 +30,8 @@ interface MatchContextType {
   subscribeToMatches: (userId: string, cb: (matches: Match[]) => void) => () => void;
   deleteMatch: (matchId: string) => Promise<boolean>;
   syncPendingMatches: () => Promise<void>;
+  
+  migrateLegacyItem: (identifier: string) => Promise<{ migrated: boolean; movedToPending: boolean; error?: string }>;
 }
 
 const MatchContext = createContext<MatchContextType | null>(null);
@@ -277,15 +279,83 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Sync pending on auth change or when coming online
+  
+
+    // Migrate a single legacy item (by id or _tempId). If online+auth, upload to Firestore.
+    // Otherwise move to pending queue so it can be synced later.
+    const migrateLegacyItem = async (identifier: string) => {
+      if (!identifier) return { migrated: false, movedToPending: false, error: 'no identifier' };
+
+      const rawLegacy = localStorage.getItem(LEGACY_MATCHES_KEY);
+      if (!rawLegacy) return { migrated: false, movedToPending: false, error: 'no legacy data' };
+
+      let arr: Array<any> = [];
+      try {
+        arr = JSON.parse(rawLegacy);
+      } catch (e) {
+        return { migrated: false, movedToPending: false, error: 'parse error' };
+      }
+
+      const idx = arr.findIndex((it: any) => (it._tempId && it._tempId === identifier) || (it.id && it.id === identifier));
+      if (idx === -1) return { migrated: false, movedToPending: false, error: 'not found' };
+
+      const item = arr[idx];
+      // remove from legacy array
+      arr.splice(idx, 1);
+      try {
+        if (arr.length > 0) localStorage.setItem(LEGACY_MATCHES_KEY, JSON.stringify(arr));
+        else localStorage.removeItem(LEGACY_MATCHES_KEY);
+      } catch (e) {
+        // ignore write errors
+      }
+
+      // If online and authenticated, upload
+      if (navigator.onLine && user) {
+        try {
+          const docData: any = { ...item };
+          delete docData.id;
+          if (docData._tempId) delete docData._tempId;
+          docData.userId = user.uid;
+          docData.createdAt = serverTimestamp();
+          await addDoc(collection(db, 'matches'), docData as DocumentData);
+          return { migrated: true, movedToPending: false };
+        } catch (e) {
+          console.error('Failed to migrate legacy item, moving to pending', e);
+          // fallthrough to move to pending
+        }
+      }
+
+      // Move to pending queue
+      try {
+        const pending = getPendingMatches();
+        const tempId = item._tempId ?? `${Date.now()}-${Math.random().toString(36).slice(2,9)}`;
+        const toSave = { ...item, _tempId: tempId };
+        // ensure no duplicate
+        if (!pending.some((p: any) => p._tempId === toSave._tempId)) pending.push(toSave);
+        savePendingMatches(pending);
+        return { migrated: false, movedToPending: true };
+      } catch (e) {
+        console.error('Failed to move legacy item to pending', e);
+        return { migrated: false, movedToPending: false, error: 'failed to move to pending' };
+      }
+    };
+
+  // Sync pending on auth change or when coming online (no automatic legacy migration)
   useEffect(() => {
-    // attempt initial sync when user becomes available and online
-    if (user && navigator.onLine) {
-      syncPendingMatches();
-    }
+    const attemptSync = async () => {
+      if (!user || !navigator.onLine) return;
+      try {
+        await syncPendingMatches();
+      } catch (e) {
+        // sync errors are logged inside syncPendingMatches
+      }
+    };
+
+    // attempt initial run when user becomes available and online
+    attemptSync();
 
     const onOnline = () => {
-      if (user) syncPendingMatches();
+      if (user) attemptSync();
     };
     window.addEventListener('online', onOnline);
     return () => window.removeEventListener('online', onOnline);
@@ -327,7 +397,8 @@ export function MatchProvider({ children }: { children: React.ReactNode }) {
         loadMatches,
         subscribeToMatches,
         deleteMatch,
-        syncPendingMatches
+        syncPendingMatches,
+        migrateLegacyItem
       }}
     >
       {children}
