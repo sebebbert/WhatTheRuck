@@ -10,6 +10,7 @@ export function NewMatch() {
   const [hasHistory, setHasHistory] = useState(false);
   const { startNewMatch, loadMatches } = useMatch();
   const navigate = useNavigate();
+  const base = (import.meta.env && (import.meta.env.BASE_URL as string)) || '/';
 
   useEffect(() => {
     (async () => {
@@ -39,7 +40,7 @@ export function NewMatch() {
   const handleStartMatch = () => {
     if (homeTeam && awayTeam) {
       startNewMatch(homeTeam, awayTeam);
-      navigate('/WhatTheRuck/match');
+      navigate(`${base}match`);
     }
   };
 
@@ -66,7 +67,7 @@ export function NewMatch() {
           Start Match
         </Button>
         {hasHistory && (
-          <Button variant="outline" onClick={() => navigate('/WhatTheRuck/history')}>View Match History</Button>
+          <Button variant="outline" onClick={() => navigate(`${base}history`)}>View Match History</Button>
         )}
       </Stack>
     </Container>

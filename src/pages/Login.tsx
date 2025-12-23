@@ -8,7 +8,8 @@ import { EmailAuthProvider } from 'firebase/auth';
 export function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/WhatTheRuck';
+  const base = (import.meta.env && (import.meta.env.BASE_URL as string)) || '/';
+  const from = location.state?.from?.pathname || base;
 
   const containerRef = useRef<HTMLDivElement | null>(null);
 
