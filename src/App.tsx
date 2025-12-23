@@ -19,10 +19,9 @@ function App() {
             <Notifications />
             <TopBanner />
             <Routes>
-              <Route path="/" element={<Navigate to="/WhatTheRuck" replace />} />
-              <Route path="/WhatTheRuck/login" element={<Login />} />
+              <Route path="/login" element={<Login />} />
               <Route 
-                path="/WhatTheRuck" 
+                path="/" 
                 element={
                   <RequireAuth>
                     <NewMatch />
@@ -30,7 +29,7 @@ function App() {
                 } 
               />
               <Route 
-                path="/WhatTheRuck/match" 
+                path="/match" 
                 element={
                   <RequireAuth>
                     <LiveMatch />
@@ -38,7 +37,7 @@ function App() {
                 } 
               />
               <Route
-                path="/WhatTheRuck/history"
+                path="/history"
                 element={
                   <RequireAuth>
                     <MatchHistory />
