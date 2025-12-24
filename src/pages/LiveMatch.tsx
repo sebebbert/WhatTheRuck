@@ -34,7 +34,7 @@ export function LiveMatch() {
                 // eslint-disable-next-line no-console
                 console.log('Match saved');
               }
-              navigate('/WhatTheRuck/history');
+              navigate('/history');
             }} />
             <Group justify="space-between">
               <Text size="xl">{currentMatch.homeTeam}</Text>
