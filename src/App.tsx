@@ -1,6 +1,6 @@
 import { MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MatchProvider } from './context/MatchContext';
 import { AuthProvider } from './context/AuthContext';
 import { RequireAuth } from './components/RequireAuth';
