@@ -81,7 +81,7 @@ export function MatchHistory() {
       <Stack gap="md">
         <Group style={{ justifyContent: 'space-between' }}>
           <Title order={2}>Match History</Title>
-          <Button onClick={() => navigate('/WhatTheRuck')}>Back</Button>
+          <Button onClick={() => navigate('/')}>Back</Button>
         </Group>
 
         {legacyMatches.length > 0 && (
